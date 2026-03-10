@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier for the user" },
+        "email": { "type": "string", "format": "email", "description": "User's email address" },
+        "displayName": { "type": "string", "description": "User's display name" },
+        "photoURL": { "type": "string", "description": "URL to user's profile photo" },
+        "role": { "type": "string", "enum": ["admin", "client"], "description": "User's role in the system" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the profile was created" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Contact form submissions",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the person inquiring" },
+        "email": { "type": "string", "format": "email", "description": "Email of the person inquiring" },
+        "subject": { "type": "string", "description": "Subject of the inquiry" },
+        "message": { "type": "string", "description": "The inquiry message" },
+        "status": { "type": "string", "enum": ["new", "read", "replied"], "description": "Status of the inquiry" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the inquiry was submitted" }
+      },
+      "required": ["name", "email", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Contact form inquiries"
+    }
+  }
+}

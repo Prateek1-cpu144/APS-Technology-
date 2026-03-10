@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Network, Menu, X, ChevronRight } from 'lucide-react';
+import { Network, Menu, X, LogOut, User as UserIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { useFirebase } from './FirebaseProvider';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/' },
@@ -14,7 +15,9 @@ const NAV_ITEMS = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isProfileOpen, setIsProfileOpen] = React.useState(false);
   const location = useLocation();
+  const { user, profile, logout } = useFirebase();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
@@ -41,13 +44,86 @@ export function Navbar() {
                 {item.name}
               </Link>
             ))}
-            <Link to="/login" className="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-95">
-              Login
-            </Link>
+            
+            {user ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-3 p-1 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full border border-slate-200" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <UserIcon className="w-4 h-4 text-indigo-600" />
+                    </div>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {isProfileOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsProfileOpen(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 z-20"
+                      >
+                        <div className="flex items-center space-x-3 mb-4 p-2">
+                          {user.photoURL ? (
+                            <img src={user.photoURL} alt={user.displayName || ''} className="w-10 h-10 rounded-full" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                              <UserIcon className="w-6 h-6 text-indigo-600" />
+                            </div>
+                          )}
+                          <div className="overflow-hidden">
+                            <p className="font-bold text-slate-900 truncate">{user.displayName || 'User'}</p>
+                            <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                            {profile?.role === 'admin' && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                Admin
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="h-px bg-slate-100 mb-2" />
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsProfileOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link to="/login" className="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-95">
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-4">
+            {user && (
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-indigo-100 flex items-center justify-center">
+                    <UserIcon className="w-4 h-4 text-indigo-600" />
+                  </div>
+                )}
+              </div>
+            )}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-slate-600 hover:text-indigo-600 transition-colors"
@@ -83,6 +159,26 @@ export function Navbar() {
                   {item.name}
                 </Link>
               ))}
+              {user ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 px-3 py-4 text-base font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Sign Out</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-4 text-base font-medium text-indigo-600 bg-indigo-50 rounded-md"
+                >
+                  Login
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
